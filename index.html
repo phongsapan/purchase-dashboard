@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Data Purchase 2025 — Live Dashboard | Dohome BI</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<script src="https://alcdn.msauth.net/browser/2.38.3/js/msal-browser.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@azure/msal-browser@2.38.3/lib/msal-browser.min.js"></script>
+
 <style>
 /* ════════════════════════════════════════
    RESET & VARIABLES
@@ -633,7 +634,10 @@ let msalReady = false;  // flag ว่า MSAL init เสร็จหรือ�
 /* ── INIT ────────────────────────────────────────────────────── */
 async function initMsal(){
   try{
+    if(typeof msal === 'undefined'){ showStatus('error','MSAL not loaded — reload'); return; }
     msal_ = new msal.PublicClientApplication(msalCfg);
+
+
     await msal_.initialize();
     msalReady = true;
 
@@ -653,8 +657,8 @@ async function initMsal(){
     show('Login');
   }
 }
+   window.addEventListener('load', function(){
 
-window.addEventListener('DOMContentLoaded', ()=>{
   clock();
   setInterval(clock, 1000);
   Chart.defaults.color='#475569';
