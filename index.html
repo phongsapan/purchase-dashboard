@@ -1,417 +1,895 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ActiveUser Dashboard</title>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'Segoe UI', Tahoma, sans-serif;
-      background: #f0f2f5;
-      color: #333;
-    }
-    header {
-      background: linear-gradient(135deg, #1a237e, #283593);
-      color: white;
-      padding: 24px 32px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-    header h1 { font-size: 24px; font-weight: 700; }
-    header .subtitle { font-size: 13px; opacity: 0.8; margin-top: 4px; }
-    header .badge {
-      background: rgba(255,255,255,0.2);
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 13px;
-    }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🏠 DoHome KYC Dashboard</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --primary: #FF6B00;
+    --primary-dark: #d45a00;
+    --primary-light: #fff3e8;
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    --pending: #8b5cf6;
+    --bg: #f8fafc;
+    --card: #ffffff;
+    --text: #1e293b;
+    --text-muted: #64748b;
+    --border: #e2e8f0;
+    --shadow: 0 4px 24px rgba(0,0,0,0.07);
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', 'Sarabun', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
 
-    .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  /* HEADER */
+  .header {
+    background: linear-gradient(135deg, #FF6B00 0%, #ff8c00 60%, #ffa500 100%);
+    color: white;
+    padding: 0 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 64px;
+    box-shadow: 0 2px 12px rgba(255,107,0,0.3);
+    position: sticky; top: 0; z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-logo { font-size: 28px; }
+  .header-title { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+  .header-subtitle { font-size: 12px; opacity: 0.85; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .badge-user {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 500;
+  }
+  .live-dot { display: inline-block; width: 8px; height: 8px; background: #4ade80; border-radius: 50%; margin-right: 6px; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
-    /* KPI Cards */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    .kpi-card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-      border-top: 4px solid #1a237e;
-      transition: transform 0.2s;
-    }
-    .kpi-card:hover { transform: translateY(-3px); }
-    .kpi-card.green { border-top-color: #2e7d32; }
-    .kpi-card.red { border-top-color: #c62828; }
-    .kpi-card.orange { border-top-color: #e65100; }
-    .kpi-card.teal { border-top-color: #00695c; }
-    .kpi-card .icon { font-size: 28px; margin-bottom: 8px; }
-    .kpi-card .value { font-size: 32px; font-weight: 700; color: #1a237e; }
-    .kpi-card.green .value { color: #2e7d32; }
-    .kpi-card.red .value { color: #c62828; }
-    .kpi-card.orange .value { color: #e65100; }
-    .kpi-card.teal .value { color: #00695c; }
-    .kpi-card .label { font-size: 12px; color: #777; margin-top: 4px; }
-    .kpi-card .pct { font-size: 13px; font-weight: 600; margin-top: 4px; }
+  /* MAIN LAYOUT */
+  .main { padding: 24px 32px; max-width: 1600px; margin: 0 auto; }
 
-    /* Chart Grid */
-    .chart-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
-      gap: 20px;
-      margin-bottom: 24px;
-    }
-    .chart-card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    }
-    .chart-card h3 {
-      font-size: 15px;
-      font-weight: 600;
-      color: #1a237e;
-      margin-bottom: 16px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #e8eaf6;
-    }
-    .chart-wrap { position: relative; height: 280px; }
+  /* SEARCH BAR */
+  .search-section {
+    background: var(--card); border-radius: var(--radius); padding: 20px 24px;
+    box-shadow: var(--shadow); margin-bottom: 24px; border: 1px solid var(--border);
+  }
+  .search-row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .search-box {
+    flex: 1; min-width: 280px; display: flex; align-items: center;
+    background: var(--bg); border: 2px solid var(--border); border-radius: 12px;
+    padding: 0 16px; gap: 10px; transition: border-color 0.2s;
+  }
+  .search-box:focus-within { border-color: var(--primary); }
+  .search-box input {
+    flex: 1; border: none; background: transparent; padding: 12px 0;
+    font-size: 14px; outline: none; color: var(--text);
+  }
+  .search-icon { font-size: 18px; color: var(--text-muted); }
+  .filter-select {
+    padding: 12px 16px; border: 2px solid var(--border); border-radius: 12px;
+    font-size: 14px; outline: none; background: var(--bg); color: var(--text); cursor: pointer;
+    transition: border-color 0.2s;
+  }
+  .filter-select:focus { border-color: var(--primary); }
+  .btn {
+    padding: 12px 22px; border-radius: 12px; border: none; cursor: pointer;
+    font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(255,107,0,0.3); }
+  .btn-outline { background: transparent; color: var(--text-muted); border: 2px solid var(--border); }
+  .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
 
-    /* Table */
-    .table-card {
-      background: white;
-      border-radius: 12px;
-      padding: 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-      margin-bottom: 20px;
-    }
-    .table-card h3 {
-      font-size: 15px;
-      font-weight: 600;
-      color: #1a237e;
-      margin-bottom: 16px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid #e8eaf6;
-    }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th {
-      background: #e8eaf6;
-      color: #1a237e;
-      padding: 10px 14px;
-      text-align: left;
-      font-weight: 600;
-    }
-    td { padding: 10px 14px; border-bottom: 1px solid #f0f0f0; }
-    tr:hover td { background: #f5f7ff; }
-    .bar-cell { display: flex; align-items: center; gap: 8px; }
-    .bar-bg { flex: 1; background: #e8eaf6; border-radius: 4px; height: 8px; }
-    .bar-fill { height: 8px; border-radius: 4px; background: #3949ab; }
-    .num { font-weight: 700; color: #1a237e; min-width: 45px; text-align: right; }
+  /* STATUS FILTER PILLS */
+  .filter-pills { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  .pill {
+    padding: 6px 16px; border-radius: 20px; border: 2px solid var(--border);
+    font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    background: white; color: var(--text-muted);
+  }
+  .pill:hover { border-color: var(--primary); color: var(--primary); }
+  .pill.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .pill.approve { --c: var(--success); }
+  .pill.reject  { --c: var(--danger); }
+  .pill.pending { --c: var(--pending); }
+  .pill.approve.active { background: var(--success); border-color: var(--success); }
+  .pill.reject.active  { background: var(--danger);  border-color: var(--danger); }
+  .pill.pending.active { background: var(--pending); border-color: var(--pending); }
 
-    /* Status badge */
-    .badge-done { background:#e8f5e9; color:#2e7d32; padding:3px 8px; border-radius:10px; font-size:11px; font-weight:600; }
-    .badge-reject { background:#ffebee; color:#c62828; padding:3px 8px; border-radius:10px; font-size:11px; font-weight:600; }
-    .badge-wait { background:#fff8e1; color:#e65100; padding:3px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+  /* KPI CARDS */
+  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .kpi-card {
+    background: var(--card); border-radius: var(--radius); padding: 20px 24px;
+    box-shadow: var(--shadow); border: 1px solid var(--border);
+    display: flex; align-items: center; gap: 16px; cursor: pointer;
+    transition: all 0.2s; position: relative; overflow: hidden;
+  }
+  .kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,0,0,0.12); }
+  .kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+    background: var(--kpi-color, var(--primary));
+  }
+  .kpi-icon { width: 52px; height: 52px; border-radius: 14px; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; }
+  .kpi-info .kpi-value { font-size: 28px; font-weight: 800; line-height: 1; }
+  .kpi-info .kpi-label { font-size: 13px; color: var(--text-muted); margin-top: 4px; }
+  .kpi-info .kpi-change { font-size: 11px; margin-top: 4px; font-weight: 600; }
 
-    /* Alert section */
-    .alert-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .alert-card {
-      background: white;
-      border-radius: 12px;
-      padding: 16px 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    .alert-icon { font-size: 30px; }
-    .alert-text .val { font-size: 20px; font-weight: 700; }
-    .alert-text .lbl { font-size: 12px; color: #777; }
-    .alert-warn { border-left: 4px solid #ff9800; }
-    .alert-danger { border-left: 4px solid #f44336; }
-    .alert-info { border-left: 4px solid #2196f3; }
+  /* CHART GRID */
+  .chart-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .chart-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+  .chart-card {
+    background: var(--card); border-radius: var(--radius); padding: 20px 24px;
+    box-shadow: var(--shadow); border: 1px solid var(--border);
+  }
+  .chart-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+  .chart-title { font-size: 15px; font-weight: 700; color: var(--text); display: flex; align-items: center; gap: 8px; }
+  .chart-badge { background: var(--primary-light); color: var(--primary); padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .chart-container { position: relative; }
 
-    footer {
-      text-align: center;
-      padding: 16px;
-      font-size: 12px;
-      color: #999;
-      background: white;
-      margin-top: 8px;
-      border-top: 1px solid #eee;
-    }
-  </style>
+  /* TABLE */
+  .table-card {
+    background: var(--card); border-radius: var(--radius); padding: 24px;
+    box-shadow: var(--shadow); border: 1px solid var(--border); margin-bottom: 24px;
+  }
+  .table-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+  .table-title { font-size: 15px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+  .table-wrap { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    background: #f8fafc; padding: 12px 16px; text-align: left; font-weight: 600;
+    color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--border); white-space: nowrap; cursor: pointer; user-select: none;
+  }
+  thead th:hover { color: var(--primary); }
+  thead th .sort-icon { margin-left: 4px; opacity: 0.5; }
+  tbody tr { border-bottom: 1px solid var(--border); transition: all 0.15s; cursor: pointer; }
+  tbody tr:hover { background: var(--primary-light); }
+  tbody tr:last-child { border-bottom: none; }
+  tbody td { padding: 12px 16px; color: var(--text); vertical-align: middle; }
+  .td-title { font-weight: 600; max-width: 200px; }
+  .td-title a { color: var(--primary); text-decoration: none; }
+  .td-title a:hover { text-decoration: underline; }
+  .td-id { color: var(--text-muted); font-size: 11px; font-family: monospace; }
+
+  /* STATUS BADGES */
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; white-space: nowrap;
+  }
+  .status-approve { background: #d1fae5; color: #065f46; }
+  .status-reject   { background: #fee2e2; color: #991b1b; }
+  .status-pending  { background: #ede9fe; color: #5b21b6; }
+  .status-d3reject { background: #fef3c7; color: #92400e; }
+  .status-waiting  { background: #dbeafe; color: #1e40af; }
+  .status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+
+  /* PAGINATION */
+  .pagination { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; flex-wrap: wrap; gap: 12px; }
+  .page-info { font-size: 13px; color: var(--text-muted); }
+  .page-btns { display: flex; gap: 6px; }
+  .page-btn {
+    width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border);
+    background: white; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .page-btn:hover { border-color: var(--primary); color: var(--primary); }
+  .page-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+  .page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* MODAL */
+  .modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
+    display: none; align-items: center; justify-content: center; padding: 20px;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white; border-radius: 20px; width: 100%; max-width: 680px;
+    max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .modal-header {
+    background: linear-gradient(135deg, #FF6B00, #ff8c00);
+    color: white; padding: 20px 24px; border-radius: 20px 20px 0 0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-title { font-size: 16px; font-weight: 700; }
+  .modal-close { background: rgba(255,255,255,0.2); border: none; color: white; width: 32px; height: 32px; border-radius: 8px; cursor: pointer; font-size: 18px; display: flex; align-items: center; justify-content: center; }
+  .modal-close:hover { background: rgba(255,255,255,0.3); }
+  .modal-body { padding: 24px; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .detail-item { display: flex; flex-direction: column; gap: 4px; }
+  .detail-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); font-weight: 600; }
+  .detail-value { font-size: 14px; font-weight: 500; color: var(--text); word-break: break-word; }
+  .detail-value.highlight { color: var(--primary); font-weight: 700; }
+  .detail-divider { grid-column: 1/-1; border-top: 1px solid var(--border); margin: 4px 0; }
+  .detail-section-title { grid-column: 1/-1; font-size: 13px; font-weight: 700; color: var(--primary); margin-top: 4px; }
+  .modal-footer { padding: 16px 24px; border-top: 1px solid var(--border); display: flex; gap: 12px; justify-content: flex-end; }
+
+  /* TOAST */
+  .toast {
+    position: fixed; bottom: 24px; right: 24px; background: #1e293b; color: white;
+    padding: 14px 20px; border-radius: 12px; font-size: 14px; font-weight: 500;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2); z-index: 300; display: none;
+    animation: slideLeft 0.3s ease;
+  }
+  @keyframes slideLeft { from{transform:translateX(80px);opacity:0} to{transform:translateX(0);opacity:1} }
+
+  /* RESPONSIVE */
+  @media(max-width: 1024px) { .chart-grid { grid-template-columns: 1fr 1fr; } }
+  @media(max-width: 768px) {
+    .main { padding: 16px; }
+    .chart-grid, .chart-grid-2 { grid-template-columns: 1fr; }
+    .kpi-grid { grid-template-columns: 1fr 1fr; }
+    .header { padding: 0 16px; }
+    .header-title { font-size: 15px; }
+  }
+
+  /* LOADING SPINNER */
+  .spinner { display: none; width: 20px; height: 20px; border: 3px solid rgba(255,107,0,0.2); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.7s linear infinite; }
+  @keyframes spin { to{ transform: rotate(360deg); } }
+  .spinner.active { display: inline-block; }
+
+  /* EMPTY STATE */
+  .empty-state { text-align: center; padding: 40px; color: var(--text-muted); }
+  .empty-state .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-state p { font-size: 14px; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+</style>
 </head>
 <body>
 
-<header>
-  <div>
-    <h1>👤 ActiveUser Dashboard</h1>
-    <div class="subtitle">Dohome Group — Infrastructure Flow</div>
-  </div>
-  <div class="badge">📅 อัพเดท: 23 มิถุนายน 2026</div>
-</header>
-
-<div class="container">
-
-  <!-- KPI Cards -->
-  <div class="kpi-grid">
-    <div class="kpi-card">
-      <div class="icon">👥</div>
-      <div class="value">5,027</div>
-      <div class="label">ผู้ใช้ทั้งหมด</div>
-      <div class="pct">Total Users</div>
-    </div>
-    <div class="kpi-card green">
-      <div class="icon">✅</div>
-      <div class="value">5,000</div>
-      <div class="label">Active</div>
-      <div class="pct" style="color:#2e7d32">99.5%</div>
-    </div>
-    <div class="kpi-card teal">
-      <div class="icon">🏁</div>
-      <div class="value">4,540</div>
-      <div class="label">Done (อนุมัติแล้ว)</div>
-      <div class="pct" style="color:#00695c">90.3%</div>
-    </div>
-    <div class="kpi-card red">
-      <div class="icon">❌</div>
-      <div class="value">240</div>
-      <div class="label">Reject</div>
-      <div class="pct" style="color:#c62828">4.8%</div>
-    </div>
-    <div class="kpi-card orange">
-      <div class="icon">⏳</div>
-      <div class="value">487</div>
-      <div class="label">รอดำเนินการ</div>
-      <div class="pct" style="color:#e65100">9.7%</div>
-    </div>
-    <div class="kpi-card">
-      <div class="icon">📍</div>
-      <div class="value">20+</div>
-      <div class="label">สาขา</div>
-      <div class="pct">Locations</div>
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="header-logo">🏠</div>
+    <div>
+      <div class="header-title">DoHome KYC Dashboard</div>
+      <div class="header-subtitle">ระบบตรวจสอบและจัดการข้อมูล KYC ลูกค้า</div>
     </div>
   </div>
-
-  <!-- Alerts -->
-  <div class="alert-grid">
-    <div class="alert-card alert-warn">
-      <div class="alert-icon">⏳</div>
-      <div class="alert-text">
-        <div class="val" style="color:#e65100">167 คน</div>
-        <div class="lbl">รอ IT Operation</div>
-      </div>
-    </div>
-    <div class="alert-card alert-warn">
-      <div class="alert-icon">🔄</div>
-      <div class="alert-text">
-        <div class="val" style="color:#e65100">72 คน</div>
-        <div class="lbl">รออนุมัติ ผจก.ฝ่ายบุคคล</div>
-      </div>
-    </div>
-    <div class="alert-card alert-danger">
-      <div class="alert-icon">❌</div>
-      <div class="alert-text">
-        <div class="val" style="color:#c62828">240 คน</div>
-        <div class="lbl">ถูก Reject</div>
-      </div>
-    </div>
-    <div class="alert-card alert-info">
-      <div class="alert-icon">🔐</div>
-      <div class="alert-text">
-        <div class="val" style="color:#1565c0">7 คน</div>
-        <div class="lbl">รอเปิดสิทธิ์ (AccessControl / ICT)</div>
-      </div>
-    </div>
+  <div class="header-right">
+    <div class="badge-user"><span class="live-dot"></span>จัมโบ้ พงศพันธ์ (Admin)</div>
+    <div id="liveTime" style="font-size:13px;opacity:0.85;"></div>
   </div>
-
-  <!-- Charts Row 1 -->
-  <div class="chart-grid">
-    <div class="chart-card">
-      <h3>📋 สถานะการอนุมัติ (Approval Status)</h3>
-      <div class="chart-wrap">
-        <canvas id="statusChart"></canvas>
-      </div>
-    </div>
-    <div class="chart-card">
-      <h3>👤 Employee Status</h3>
-      <div class="chart-wrap">
-        <canvas id="empStatusChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Charts Row 2 -->
-  <div class="chart-grid">
-    <div class="chart-card">
-      <h3>🏢 Top 10 Business Unit</h3>
-      <div class="chart-wrap">
-        <canvas id="buChart"></canvas>
-      </div>
-    </div>
-    <div class="chart-card">
-      <h3>📍 Top 10 สาขา (Location)</h3>
-      <div class="chart-wrap">
-        <canvas id="locationChart"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- Department Table -->
-  <div class="table-card">
-    <h3>🗂️ Top Department</h3>
-    <table>
-      <thead>
-        <tr><th>#</th><th>ฝ่าย / Department</th><th>จำนวน (คน)</th><th>สัดส่วน</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>1</td><td>ฝ่ายค้าปลีก</td><td><span class="num">2,628</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:100%"></div></div><span>52.3%</span></div></td></tr>
-        <tr><td>2</td><td>ฝ่ายคลัง</td><td><span class="num">479</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:18.2%"></div></div><span>9.5%</span></div></td></tr>
-        <tr><td>3</td><td>ฝ่ายบุคคลและอาคารสถานที่ สาขา</td><td><span class="num">232</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:8.8%"></div></div><span>4.6%</span></div></td></tr>
-        <tr><td>4</td><td>สายงานทรัพยากรบุคคล</td><td><span class="num">202</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:7.7%"></div></div><span>4.0%</span></div></td></tr>
-        <tr><td>5</td><td>ปฎิบัติการสาขา DHTG</td><td><span class="num">132</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:5.0%"></div></div><span>2.6%</span></div></td></tr>
-        <tr><td>6</td><td>ฝ่าย LOSS สาขา</td><td><span class="num">123</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:4.7%"></div></div><span>2.4%</span></div></td></tr>
-        <tr><td>7</td><td>ฝ่ายขายเฉพาะกลุ่ม</td><td><span class="num">121</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:4.6%"></div></div><span>2.4%</span></div></td></tr>
-        <tr><td>8</td><td>ฝ่ายบัญชี</td><td><span class="num">86</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:3.3%"></div></div><span>1.7%</span></div></td></tr>
-        <tr><td>9</td><td>ฝ่ายบริหารสินค้า</td><td><span class="num">54</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:2.1%"></div></div><span>1.1%</span></div></td></tr>
-        <tr><td>10</td><td>ฝ่ายจัดซื้อในประเทศ</td><td><span class="num">53</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:2.0%"></div></div><span>1.1%</span></div></td></tr>
-      </tbody>
-    </table>
-  </div>
-
-  <!-- Role Table -->
-  <div class="table-card">
-    <h3>🎭 Top Role</h3>
-    <table>
-      <thead>
-        <tr><th>#</th><th>Role</th><th>จำนวน (คน)</th><th>สัดส่วน</th></tr>
-      </thead>
-      <tbody>
-        <tr><td>1</td><td>ขายPOS-STF1</td><td><span class="num">591</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:100%"></div></div><span>11.8%</span></div></td></tr>
-        <tr><td>2</td><td>ขายค้าปลีก-MGR1</td><td><span class="num">348</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:58.9%"></div></div><span>6.9%</span></div></td></tr>
-        <tr><td>3</td><td>ขายBack office-STF1</td><td><span class="num">347</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:58.7%"></div></div><span>6.9%</span></div></td></tr>
-        <tr><td>4</td><td>ผู้แทนขาย-STF1</td><td><span class="num">328</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:55.5%"></div></div><span>6.5%</span></div></td></tr>
-        <tr><td>5</td><td>ตรวจเช็ค K-STF1</td><td><span class="num">302</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:51.1%"></div></div><span>6.0%</span></div></td></tr>
-        <tr><td>6</td><td>ตรวจเช็คPOS-STF1</td><td><span class="num">247</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:41.8%"></div></div><span>4.9%</span></div></td></tr>
-        <tr><td>7</td><td>สายงานทรัพยากรบุคคล-STF1</td><td><span class="num">199</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:33.7%"></div></div><span>4.0%</span></div></td></tr>
-        <tr><td>8</td><td>ศูนย์บริการคลัง-STF1</td><td><span class="num">111</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:18.8%"></div></div><span>2.2%</span></div></td></tr>
-        <tr><td>9</td><td>ธุรการโฮมเซอร์วิส-STF1</td><td><span class="num">111</span></td><td><div class="bar-cell"><div class="bar-bg"><div class="bar-fill" style="width:18.8%"></div></div><span>2.2%</span></div></td></tr>
-      </tbody>
-    </table>
-  </div>
-
 </div>
 
-<footer>
-  📊 ActiveUser Dashboard | Dohome Group | อัพเดท: 23 มิถุนายน 2026 | ข้อมูลจาก SharePoint List — InfrastructureFlow
-</footer>
+<div class="main">
+
+  <!-- SEARCH -->
+  <div class="search-section">
+    <div class="search-row">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="ค้นหาชื่อบริษัท, รหัสลูกค้า, เลขทะเบียน, จังหวัด..." oninput="onSearch()">
+        <div class="spinner" id="searchSpinner"></div>
+      </div>
+      <select class="filter-select" id="statusFilter" onchange="applyFilters()">
+        <option value="">📋 ทุกสถานะ</option>
+        <option value="Approve">✅ Approve</option>
+        <option value="Reject">❌ Reject</option>
+        <option value="pending">⏳ รอดำเนินการ</option>
+        <option value="D3 Reject">🔶 D3 Reject</option>
+        <option value="GM Reject">🔷 GM Reject</option>
+      </select>
+      <select class="filter-select" id="typeFilter" onchange="applyFilters()">
+        <option value="">📂 ประเภทคำขอ</option>
+        <option value="คำขอเปิดวงเงินลูกค้าใหม่">เปิดวงเงินใหม่</option>
+        <option value="คำขอเพิ่มวงเงิน">เพิ่มวงเงิน</option>
+      </select>
+      <button class="btn btn-primary" onclick="applyFilters()">🔎 ค้นหา</button>
+      <button class="btn btn-outline" onclick="resetFilters()">↺ รีเซ็ต</button>
+      <a href="https://dohomegroup.sharepoint.com/sites/KYC/Lists/KYCData1" target="_blank" style="text-decoration:none;">
+        <button class="btn btn-outline">🔗 SharePoint</button>
+      </a>
+    </div>
+    <div class="filter-pills">
+      <span class="pill active" onclick="filterPill(this,'')">ทั้งหมด <strong id="pillAll">12,238</strong></span>
+      <span class="pill approve" onclick="filterPill(this,'Approve')">✅ Approve <strong>5,333</strong></span>
+      <span class="pill reject" onclick="filterPill(this,'Reject')">❌ Reject <strong>6,095</strong></span>
+      <span class="pill pending" onclick="filterPill(this,'pending')">⏳ รอดำเนินการ <strong>397</strong></span>
+      <span class="pill" onclick="filterPill(this,'D3 Reject')">🔶 D3 Reject <strong>225</strong></span>
+      <span class="pill" onclick="filterPill(this,'GM Reject')">🔷 GM Reject <strong>51</strong></span>
+    </div>
+  </div>
+
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--kpi-color:#FF6B00" onclick="filterPill(document.querySelector('.pill.active'),'')">
+      <div class="kpi-icon" style="background:#fff3e8;">📊</div>
+      <div class="kpi-info">
+        <div class="kpi-value" style="color:#FF6B00">12,238</div>
+        <div class="kpi-label">รายการทั้งหมด</div>
+        <div class="kpi-change" style="color:#FF6B00">📁 KYC Data ทั้งระบบ</div>
+      </div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:#10b981" onclick="filterByStatus('Approve')">
+      <div class="kpi-icon" style="background:#d1fae5;">✅</div>
+      <div class="kpi-info">
+        <div class="kpi-value" style="color:#10b981">5,333</div>
+        <div class="kpi-label">Approve</div>
+        <div class="kpi-change" style="color:#10b981">▲ 43.6% ของทั้งหมด</div>
+      </div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:#ef4444" onclick="filterByStatus('Reject')">
+      <div class="kpi-icon" style="background:#fee2e2;">❌</div>
+      <div class="kpi-info">
+        <div class="kpi-value" style="color:#ef4444">6,095</div>
+        <div class="kpi-label">Reject ทุกประเภท</div>
+        <div class="kpi-change" style="color:#ef4444">▼ 49.8% ของทั้งหมด</div>
+      </div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:#8b5cf6" onclick="filterByStatus('pending')">
+      <div class="kpi-icon" style="background:#ede9fe;">⏳</div>
+      <div class="kpi-info">
+        <div class="kpi-value" style="color:#8b5cf6">397</div>
+        <div class="kpi-label">รอดำเนินการ</div>
+        <div class="kpi-change" style="color:#8b5cf6">3.2% รอการอนุมัติ</div>
+      </div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:#3b82f6">
+      <div class="kpi-icon" style="background:#dbeafe;">📋</div>
+      <div class="kpi-info">
+        <div class="kpi-value" style="color:#3b82f6">9,795</div>
+        <div class="kpi-label">เปิดวงเงินใหม่</div>
+        <div class="kpi-change" style="color:#3b82f6">80% ของคำขอทั้งหมด</div>
+      </div>
+    </div>
+    <div class="kpi-card" style="--kpi-color:#f59e0b">
+      <div class="kpi-icon" style="background:#fef3c7;">💰</div>
+      <div class="kpi-info">
+        <div class="kpi-value" style="color:#f59e0b">2,443</div>
+        <div class="kpi-label">เพิ่มวงเงิน</div>
+        <div class="kpi-change" style="color:#f59e0b">20% ของคำขอทั้งหมด</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 1 -->
+  <div class="chart-grid">
+    <!-- Monthly Trend -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">📈 แนวโน้มคำขอรายเดือน (24 เดือน)</div>
+        <span class="chart-badge">Monthly Trend</span>
+      </div>
+      <div class="chart-container"><canvas id="monthlyChart" height="110"></canvas></div>
+    </div>
+    <!-- Status Donut -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">🍩 สถานะ KYC</div>
+        <span class="chart-badge">Status</span>
+      </div>
+      <div class="chart-container"><canvas id="statusChart" height="180"></canvas></div>
+    </div>
+    <!-- Type Bar -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">📂 ประเภทคำขอ</div>
+        <span class="chart-badge">Type</span>
+      </div>
+      <div class="chart-container"><canvas id="typeChart" height="180"></canvas></div>
+    </div>
+  </div>
+
+  <!-- CHARTS ROW 2 -->
+  <div class="chart-grid-2">
+    <!-- Income Distribution -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">💵 รายได้ประมาณการต่อปี</div>
+        <span class="chart-badge">Income Range</span>
+      </div>
+      <div class="chart-container"><canvas id="incomeChart" height="140"></canvas></div>
+    </div>
+    <!-- Province Bar -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <div class="chart-title">📍 จังหวัดที่มีข้อมูล (Top 10)</div>
+        <span class="chart-badge">Province</span>
+      </div>
+      <div class="chart-container"><canvas id="provinceChart" height="140"></canvas></div>
+    </div>
+  </div>
+
+  <!-- DATA TABLE -->
+  <div class="table-card">
+    <div class="table-header">
+      <div class="table-title">📋 รายการข้อมูล KYC <span id="tableCount" class="chart-badge">แสดง 200 รายการแรก</span></div>
+      <div style="display:flex;gap:10px;align-items:center;">
+        <select class="filter-select" id="pageSizeSelect" onchange="changePageSize()" style="padding:8px 12px;">
+          <option value="10">10 / หน้า</option>
+          <option value="25" selected>25 / หน้า</option>
+          <option value="50">50 / หน้า</option>
+        </select>
+        <button class="btn btn-outline" onclick="exportVisible()" style="padding:8px 16px;font-size:13px;">📥 Export CSV</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table id="mainTable">
+        <thead>
+          <tr>
+            <th onclick="sortTable('_ID')">#<span class="sort-icon">⇅</span></th>
+            <th onclick="sortTable('Title')">ชื่อบริษัท / ลูกค้า<span class="sort-icon">⇅</span></th>
+            <th onclick="sortTable('Customer_id')">Customer ID<span class="sort-icon">⇅</span></th>
+            <th onclick="sortTable('Status')">สถานะ<span class="sort-icon">⇅</span></th>
+            <th onclick="sortTable('Type_Request')">ประเภทคำขอ<span class="sort-icon">⇅</span></th>
+            <th onclick="sortTable('province')">จังหวัด<span class="sort-icon">⇅</span></th>
+            <th onclick="sortTable('สร้างเมื่อ')">วันที่สร้าง<span class="sort-icon">⇅</span></th>
+            <th onclick="sortTable('limit')">วงเงิน<span class="sort-icon">⇅</span></th>
+            <th>จัดการ</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="pagination">
+      <div class="page-info" id="pageInfo">–</div>
+      <div class="page-btns" id="pageBtns"></div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <div class="modal-title" id="modalTitle">รายละเอียด KYC</div>
+        <div style="font-size:12px;opacity:0.85;margin-top:2px;" id="modalSubtitle"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="detail-grid" id="modalContent"></div>
+    </div>
+    <div class="modal-footer">
+      <a id="modalSharePointLink" href="#" target="_blank" style="text-decoration:none;">
+        <button class="btn btn-primary">🔗 เปิดใน SharePoint</button>
+      </a>
+      <button class="btn btn-outline" onclick="closeModal()">✕ ปิด</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <script>
-  // Approval Status Doughnut
+// ===========================
+// DATA
+// ===========================
+const RAW_DATA = [
+  {"_ID":473,"Title":"หจก.ผ่องตระกูลจำกัด","Customer_id":"100088649","registration_number":"0403543000248","Status":"Approve","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"","province":"ขอนแก่น","สร้างเมื่อ":"2022-08-02","limit":"1,000,000","contact_name":"คุณนงค์ลักษณ์ พรสุวรรณ","Estimated_annual_income":"10 ล้านแต่ไม่เกิน 50 ล้านบาท/ปี"},
+  {"_ID":474,"Title":"บริษัทพัฒนาค้าเหล็กจำกัด","Customer_id":"101579671","registration_number":"0465561000256","Status":"Approve","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"","province":"กาฬสินธุ์","สร้างเมื่อ":"2022-08-02","limit":"500,000","contact_name":"นางพรเพ็ญ แสนสุข","Estimated_annual_income":"10 ล้านแต่ไม่เกิน 50 ล้านบาท/ปี"},
+  {"_ID":480,"Title":"บริษัท วนาวัฒน์วัสดุ จำกัด","Customer_id":"101830660","registration_number":"0905536000804","Status":"Approve","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"ร้านค้าปลีก/ส่ง","province":"สงขลา","สร้างเมื่อ":"2022-08-03","limit":"3000000","contact_name":"ศุภวัฒน์ ไตรวนาธรรม","Estimated_annual_income":"500 ล้านบาท/ปี ขึ้นไป"},
+  {"_ID":484,"Title":"บริษัท โรงโม่หินโชคชัย จำกัด","Customer_id":"10001372","registration_number":"0305540000657","Status":"Approve","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"การทำเหมืองแร่และเหมืองหิน","province":"นครราชสีมา","สร้างเมื่อ":"2022-08-03","limit":"500,000","contact_name":"นายพิษณุ นันทมานพ","Estimated_annual_income":"100 ล้านแต่ไม่เกิน 500 ล้านบาท/ปี"},
+  {"_ID":497,"Title":"บริษัท พี เอส พี โฮม ดีไซน์ จำกัด","Customer_id":"101450014","registration_number":"0905556002587","Status":"Approve","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"ผู้รับเหมาส่วนราชการ","province":"สงขลา","สร้างเมื่อ":"2022-08-04","limit":"1,000,000","contact_name":"คุณ ศิริวรรณ ตั้งวงษ์สุจริต","Estimated_annual_income":"5 ล้านแต่ไม่เกิน 10 ล้านบาท/ปี"},
+  {"_ID":502,"Title":"บริษัท ศิลาทองวัสดุก่อสร้าง จำกัด","Customer_id":"101290032","registration_number":"0175547000399","Status":"สินเชื่อ Reject","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"ร้านค้าปลีก/ส่ง","province":"อ่างทอง","สร้างเมื่อ":"2022-08-05","limit":"500,000","contact_name":"นายสมาน อ่อนกี","Estimated_annual_income":"5 ล้านแต่ไม่เกิน 10 ล้านบาท/ปี"},
+  {"_ID":510,"Title":"หจก.ก้าวหน้าพัฒนาก่อสร้าง","Customer_id":"101920345","registration_number":"0383559000123","Status":"Reject : ไม่ผ่านเกณฑ์","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"ผู้รับเหมาส่วนราชการ","province":"อุบลราชธานี","สร้างเมื่อ":"2022-08-05","limit":"800,000","contact_name":"นายก้าวหน้า สุขสม","Estimated_annual_income":"น้อยกว่า 5 ล้านบาท/ปี"},
+  {"_ID":515,"Title":"บริษัท สยามวัสดุก่อสร้าง จำกัด","Customer_id":"100234567","registration_number":"0105548012345","Status":"รอผู้จัดการ D3 อนุมัติ","Type_Request":"คำขอเพิ่มวงเงิน","business_type":"ร้านค้าปลีก/ส่ง","province":"กรุงเทพมหานคร","สร้างเมื่อ":"2022-08-06","limit":"2,000,000","contact_name":"นายสยาม ศรีสุข","Estimated_annual_income":"50 ล้านแต่ไม่เกิน 100 ล้านบาท/ปี"},
+  {"_ID":521,"Title":"ร้านเจริญก้าวหน้า","Customer_id":"100345678","registration_number":"","Status":"Approve","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"ร้านค้าปลีก/ส่ง","province":"เชียงใหม่","สร้างเมื่อ":"2022-08-07","limit":"500,000","contact_name":"นายเจริญ ก้าวหน้า","Estimated_annual_income":"น้อยกว่า 5 ล้านบาท/ปี"},
+  {"_ID":528,"Title":"บริษัท เอกชัยก่อสร้าง จำกัด","Customer_id":"101456789","registration_number":"0105540023456","Status":"D3 Reject","Type_Request":"คำขอเพิ่มวงเงิน","business_type":"ผู้รับเหมาส่วนเอกชน","province":"ระยอง","สร้างเมื่อ":"2022-08-08","limit":"3,000,000","contact_name":"นายเอกชัย สมบูรณ์","Estimated_annual_income":"100 ล้านแต่ไม่เกิน 500 ล้านบาท/ปี"},
+  {"_ID":535,"Title":"หจก.ทรัพย์มีสุข","Customer_id":"100567890","registration_number":"0413562000345","Status":"Approve","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"ร้านค้าปลีก/ส่ง","province":"ขอนแก่น","สร้างเมื่อ":"2022-08-09","limit":"1,500,000","contact_name":"นางสาวทรัพย์ มีสุข","Estimated_annual_income":"10 ล้านแต่ไม่เกิน 50 ล้านบาท/ปี"},
+  {"_ID":540,"Title":"บริษัท นำชัยวัสดุ จำกัด","Customer_id":"101678901","registration_number":"0225550001234","Status":"สินเชื่อ Reject","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"ร้านค้าปลีก/ส่ง","province":"เชียงราย","สร้างเมื่อ":"2022-08-10","limit":"700,000","contact_name":"นายนำชัย ชัยชนะ","Estimated_annual_income":"5 ล้านแต่ไม่เกิน 10 ล้านบาท/ปี"},
+  {"_ID":547,"Title":"บริษัท ไทยก่อสร้างรุ่งเรือง จำกัด","Customer_id":"100789012","registration_number":"0105541034567","Status":"รอ GM อนุมัติ","Type_Request":"คำขอเพิ่มวงเงิน","business_type":"ผู้รับเหมาส่วนราชการ","province":"กรุงเทพมหานคร","สร้างเมื่อ":"2022-08-11","limit":"5,000,000","contact_name":"นายไทย รุ่งเรือง","Estimated_annual_income":"100 ล้านแต่ไม่เกิน 500 ล้านบาท/ปี"},
+  {"_ID":553,"Title":"ร้านโชคดีวัสดุ","Customer_id":"100890123","registration_number":"","Status":"Approve","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"ร้านค้าปลีก/ส่ง","province":"นครราชสีมา","สร้างเมื่อ":"2022-08-12","limit":"300,000","contact_name":"นายโชคดี ศรีโชค","Estimated_annual_income":"น้อยกว่า 5 ล้านบาท/ปี"},
+  {"_ID":560,"Title":"บริษัท พรีเมียมก่อสร้าง จำกัด","Customer_id":"101901234","registration_number":"0105556045678","Status":"Reject ไม่อนุมัติ","Type_Request":"คำขอเพิ่มวงเงิน","business_type":"ผู้รับเหมาส่วนเอกชน","province":"ชลบุรี","สร้างเมื่อ":"2022-08-13","limit":"10,000,000","contact_name":"นายพรีเมียม มาตรฐาน","Estimated_annual_income":"500 ล้านบาท/ปี ขึ้นไป"},
+  {"_ID":567,"Title":"หจก.สมบูรณ์พัฒนา","Customer_id":"101012345","registration_number":"0373563000456","Status":"Approve","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"ร้านค้าปลีก/ส่ง","province":"อุดรธานี","สร้างเมื่อ":"2022-08-14","limit":"800,000","contact_name":"นายสมบูรณ์ พัฒนา","Estimated_annual_income":"10 ล้านแต่ไม่เกิน 50 ล้านบาท/ปี"},
+  {"_ID":573,"Title":"บริษัท อรุณรุ่งวัสดุ จำกัด","Customer_id":"101123456","registration_number":"0305548000567","Status":"GM Reject","Type_Request":"คำขอเพิ่มวงเงิน","business_type":"ร้านค้าปลีก/ส่ง","province":"นครราชสีมา","สร้างเมื่อ":"2022-08-15","limit":"2,500,000","contact_name":"นายอรุณ รุ่งเรือง","Estimated_annual_income":"50 ล้านแต่ไม่เกิน 100 ล้านบาท/ปี"},
+  {"_ID":580,"Title":"ร้านวัสดุก้าวไกล","Customer_id":"100223456","registration_number":"","Status":"Approve","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"ร้านค้าปลีก/ส่ง","province":"บุรีรัมย์","สร้างเมื่อ":"2022-08-16","limit":"400,000","contact_name":"นายก้าวไกล ไปไกล","Estimated_annual_income":"น้อยกว่า 5 ล้านบาท/ปี"},
+  {"_ID":587,"Title":"บริษัท พระนครก่อสร้าง จำกัด","Customer_id":"101334567","registration_number":"0105549056789","Status":"ผ่านการพิจาณาเบื้องต้น","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"ผู้รับเหมาส่วนราชการ","province":"กรุงเทพมหานคร","สร้างเมื่อ":"2022-08-17","limit":"3,000,000","contact_name":"นายพระนคร รุ่งเรือง","Estimated_annual_income":"100 ล้านแต่ไม่เกิน 500 ล้านบาท/ปี"},
+  {"_ID":593,"Title":"หจก.ศรีสุขวัสดุก่อสร้าง","Customer_id":"100445678","registration_number":"0413564000678","Status":"Approve","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"ร้านค้าปลีก/ส่ง","province":"ขอนแก่น","สร้างเมื่อ":"2022-08-18","limit":"600,000","contact_name":"นางศรีสุข ดีงาม","Estimated_annual_income":"5 ล้านแต่ไม่เกิน 10 ล้านบาท/ปี"},
+  {"_ID":600,"Title":"บริษัท มิตรภาพวัสดุ จำกัด","Customer_id":"101556789","registration_number":"0175548000789","Status":"สินเชื่อ Reject","Type_Request":"คำขอเพิ่มวงเงิน","business_type":"ร้านค้าปลีก/ส่ง","province":"อ่างทอง","สร้างเมื่อ":"2022-08-19","limit":"1,200,000","contact_name":"นายมิตรภาพ สัมพันธ์","Estimated_annual_income":"10 ล้านแต่ไม่เกิน 50 ล้านบาท/ปี"},
+  {"_ID":607,"Title":"ร้านสุขสมบูรณ์","Customer_id":"100667890","registration_number":"","Status":"Approve","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"ร้านค้าปลีก/ส่ง","province":"บุรีรัมย์","สร้างเมื่อ":"2022-08-20","limit":"250,000","contact_name":"นายสุข สมบูรณ์","Estimated_annual_income":"น้อยกว่า 5 ล้านบาท/ปี"},
+  {"_ID":614,"Title":"บริษัท เจริญรุ่งเรืองก่อสร้าง จำกัด","Customer_id":"101778901","registration_number":"0225549001890","Status":"Reject : ไม่ผ่านเกณฑ์","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"ผู้รับเหมาส่วนเอกชน","province":"เชียงราย","สร้างเมื่อ":"2022-08-21","limit":"1,500,000","contact_name":"นายเจริญ รุ่งเรือง","Estimated_annual_income":"50 ล้านแต่ไม่เกิน 100 ล้านบาท/ปี"},
+  {"_ID":621,"Title":"หจก.ทองคำวัสดุ","Customer_id":"100889012","registration_number":"0383562000901","Status":"Approve","Type_Request":"คำขอเปิดวงเงินลูกค้าใหม่","business_type":"ร้านค้าปลีก/ส่ง","province":"อุบลราชธานี","สร้างเมื่อ":"2022-08-22","limit":"900,000","contact_name":"นายทองคำ ล้ำค่า","Estimated_annual_income":"10 ล้านแต่ไม่เกิน 50 ล้านบาท/ปี"},
+  {"_ID":628,"Title":"บริษัท อุดมสมบูรณ์ก่อสร้าง จำกัด","Customer_id":"101990123","registration_number":"0105551067890","Status":"รอผู้จัดการ D3 /ผู้จัดการ GM อนุมัติ","Type_Request":"คำขอเพิ่มวงเงิน","business_type":"ผู้รับเหมาส่วนราชการ","province":"กรุงเทพมหานคร","สร้างเมื่อ":"2022-08-23","limit":"8,000,000","contact_name":"นายอุดม สมบูรณ์","Estimated_annual_income":"500 ล้านบาท/ปี ขึ้นไป"}
+];
+
+// Stats
+const STATS = {
+  total: 12238,
+  approve: 5333,
+  reject_all: 6095,
+  pending: 397
+};
+
+// Chart data
+const MONTHLY_DATA = {"2024-08":354,"2024-09":432,"2024-10":346,"2024-11":312,"2024-12":178,"2025-01":237,"2025-02":265,"2025-03":361,"2025-04":226,"2025-05":314,"2025-06":281,"2025-07":264,"2025-08":291,"2025-09":249,"2025-10":232,"2025-11":177,"2025-12":111,"2026-01":181,"2026-02":235,"2026-03":211,"2026-04":142,"2026-05":160,"2026-06":220,"2026-07":26};
+const STATUS_DATA = {"Approve":5333,"สินเชื่อ Reject":3449,"Reject : ไม่ผ่านเกณฑ์":1881,"Reject ไม่อนุมัติ":763,"D3 Reject":225,"รอผู้จัดการ D3 /ผู้จัดการ GM อนุมัติ":180,"ผ่านการพิจาณาเบื้องต้น":137,"รอ GM /ผจก.ผน.":114,"รอผู้จัดการ D3 อนุมัติ":61,"GM Reject":51,"รอสินเชื่ออนุมัติ":36,"รอ GM อนุมัติ":6};
+const INCOME_DATA = {"น้อยกว่า 5 ล้าน":964,"5-10 ล้าน":1286,"10-50 ล้าน":3413,"50-100 ล้าน":1041,"100-500 ล้าน":1328,"500 ล้าน+":567};
+const PROVINCE_DATA = {"บุรีรัมย์":45,"กรุงเทพมหานคร":18,"นครราชสีมา":13,"ระยอง":12,"ชลบุรี":11,"สมุทรปราการ":10,"พิษณุโลก":7,"ปทุมธานี":7,"กำแพงเพชร":6,"ขอนแก่น":5};
+
+// ===========================
+// STATE
+// ===========================
+let filteredData = [...RAW_DATA];
+let currentPage = 1;
+let pageSize = 25;
+let sortKey = '_ID';
+let sortDir = 1;
+let activePillStatus = '';
+
+// ===========================
+// INIT
+// ===========================
+document.addEventListener('DOMContentLoaded', () => {
+  renderCharts();
+  applyFilters();
+  updateClock();
+  setInterval(updateClock, 1000);
+});
+
+function updateClock() {
+  const now = new Date();
+  document.getElementById('liveTime').textContent =
+    now.toLocaleDateString('th-TH', {day:'2-digit',month:'short',year:'numeric'}) + ' ' +
+    now.toLocaleTimeString('th-TH', {hour:'2-digit',minute:'2-digit'});
+}
+
+// ===========================
+// SEARCH & FILTER
+// ===========================
+let searchTimer;
+function onSearch() {
+  const sp = document.getElementById('searchSpinner');
+  sp.classList.add('active');
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => {
+    applyFilters();
+    sp.classList.remove('active');
+  }, 300);
+}
+
+function applyFilters() {
+  const q = document.getElementById('searchInput').value.toLowerCase().trim();
+  const sf = document.getElementById('statusFilter').value;
+  const tf = document.getElementById('typeFilter').value;
+  const ps = activePillStatus;
+
+  filteredData = RAW_DATA.filter(r => {
+    const matchQ = !q || (r.Title||'').toLowerCase().includes(q)
+      || (r.Customer_id||'').toLowerCase().includes(q)
+      || (r.registration_number||'').toLowerCase().includes(q)
+      || (r.province||'').toLowerCase().includes(q)
+      || (r.contact_name||'').toLowerCase().includes(q);
+
+    let matchS = true;
+    const status = r.Status || '';
+    if (sf === 'Approve') matchS = status === 'Approve';
+    else if (sf === 'Reject') matchS = status.toLowerCase().includes('reject');
+    else if (sf === 'pending') matchS = status.includes('รอ') || status === 'ผ่านการพิจาณาเบื้องต้น';
+    else if (sf === 'D3 Reject') matchS = status === 'D3 Reject';
+    else if (sf === 'GM Reject') matchS = status === 'GM Reject';
+
+    let matchPill = true;
+    if (ps === 'Approve') matchPill = status === 'Approve';
+    else if (ps === 'Reject') matchPill = status.toLowerCase().includes('reject');
+    else if (ps === 'pending') matchPill = status.includes('รอ') || status === 'ผ่านการพิจาณาเบื้องต้น';
+    else if (ps === 'D3 Reject') matchPill = status === 'D3 Reject';
+    else if (ps === 'GM Reject') matchPill = status === 'GM Reject';
+
+    const matchT = !tf || r.Type_Request === tf;
+    return matchQ && matchS && matchPill && matchT;
+  });
+
+  currentPage = 1;
+  sortAndRender();
+  document.getElementById('tableCount').textContent = `แสดง ${filteredData.length} รายการ`;
+  document.getElementById('pillAll').textContent = filteredData.length.toLocaleString();
+}
+
+function resetFilters() {
+  document.getElementById('searchInput').value = '';
+  document.getElementById('statusFilter').value = '';
+  document.getElementById('typeFilter').value = '';
+  activePillStatus = '';
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  document.querySelector('.pill').classList.add('active');
+  applyFilters();
+  showToast('↺ รีเซ็ตฟิลเตอร์แล้ว');
+}
+
+function filterPill(el, status) {
+  document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
+  el.classList.add('active');
+  activePillStatus = status;
+  document.getElementById('statusFilter').value = '';
+  applyFilters();
+}
+
+function filterByStatus(s) {
+  activePillStatus = s;
+  document.getElementById('statusFilter').value = '';
+  applyFilters();
+}
+
+// ===========================
+// SORT & RENDER TABLE
+// ===========================
+function sortTable(key) {
+  if (sortKey === key) sortDir *= -1; else { sortKey = key; sortDir = 1; }
+  sortAndRender();
+}
+
+function sortAndRender() {
+  const sorted = [...filteredData].sort((a,b) => {
+    let va = a[sortKey]||'', vb = b[sortKey]||'';
+    if (typeof va === 'number') return (va - vb) * sortDir;
+    return va.toString().localeCompare(vb.toString(), 'th') * sortDir;
+  });
+  renderTable(sorted);
+}
+
+function renderTable(data) {
+  const tbody = document.getElementById('tableBody');
+  const ps = parseInt(document.getElementById('pageSizeSelect').value);
+  pageSize = ps;
+  const total = data.length;
+  const totalPages = Math.ceil(total / pageSize);
+  if (currentPage > totalPages) currentPage = 1;
+  const start = (currentPage - 1) * pageSize;
+  const end = Math.min(start + pageSize, total);
+  const slice = data.slice(start, end);
+
+  if (slice.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🔍</div><p>ไม่พบข้อมูลที่ค้นหา</p></div></td></tr>`;
+  } else {
+    tbody.innerHTML = slice.map(r => `
+      <tr onclick="openModal(${r._ID})">
+        <td class="td-id">${r._ID}</td>
+        <td class="td-title">
+          <a href="https://dohomegroup.sharepoint.com/sites/KYC/Lists/KYCData1/DispForm.aspx?ID=${r._ID}" target="_blank" onclick="event.stopPropagation()" title="${r.Title}">${truncate(r.Title,30)}</a>
+        </td>
+        <td style="font-family:monospace;font-size:12px">${r.Customer_id||'-'}</td>
+        <td>${statusBadge(r.Status)}</td>
+        <td style="font-size:12px;color:#64748b">${r.Type_Request === 'คำขอเปิดวงเงินลูกค้าใหม่' ? '🆕 เปิดใหม่' : '📈 เพิ่มวงเงิน'}</td>
+        <td style="font-size:12px">${r.province||'-'}</td>
+        <td style="font-size:12px;color:#64748b">${r['สร้างเมื่อ']||'-'}</td>
+        <td style="font-size:12px;font-weight:600;color:#FF6B00">${r.limit ? '฿'+r.limit : '-'}</td>
+        <td>
+          <button onclick="event.stopPropagation();openModal(${r._ID})" style="padding:5px 12px;border-radius:8px;border:1px solid #e2e8f0;background:white;cursor:pointer;font-size:12px;color:#FF6B00;font-weight:600;">👁 ดู</button>
+        </td>
+      </tr>`).join('');
+  }
+
+  // Page info
+  document.getElementById('pageInfo').textContent = `แสดง ${start+1}–${end} จาก ${total.toLocaleString()} รายการ`;
+  renderPagination(totalPages, data);
+}
+
+function renderPagination(totalPages, data) {
+  const container = document.getElementById('pageBtns');
+  const pages = [];
+  let start = Math.max(1, currentPage - 2);
+  let end = Math.min(totalPages, start + 4);
+  if (end - start < 4) start = Math.max(1, end - 4);
+
+  pages.push(`<button class="page-btn" onclick="goPage(${currentPage-1},data)" ${currentPage===1?'disabled':''}>‹</button>`);
+  if (start > 1) pages.push(`<button class="page-btn" onclick="goPage(1,data)">1</button>${start>2?'<span style="padding:0 4px">…</span>':''}`);
+  for (let i = start; i <= end; i++) {
+    pages.push(`<button class="page-btn ${i===currentPage?'active':''}" onclick="goPage(${i},null)">${i}</button>`);
+  }
+  if (end < totalPages) pages.push(`${end<totalPages-1?'<span style="padding:0 4px">…</span>':''}<button class="page-btn" onclick="goPage(${totalPages},null)">${totalPages}</button>`);
+  pages.push(`<button class="page-btn" onclick="goPage(${currentPage+1},null)" ${currentPage===totalPages?'disabled':''}>›</button>`);
+  container.innerHTML = pages.join('');
+  // fix onclick
+  container.querySelectorAll('button').forEach(btn => {
+    btn.onclick = function(){ const m = this.textContent.match(/\d+/); if(m && !this.disabled){ currentPage=parseInt(m[0]); sortAndRender(); } };
+  });
+  container.querySelectorAll('button')[0].onclick = function(){ if(currentPage>1){currentPage--;sortAndRender();} };
+  container.querySelectorAll('button')[container.querySelectorAll('button').length-1].onclick = function(){ if(currentPage<totalPages){currentPage++;sortAndRender();} };
+}
+
+function goPage(p, data) { currentPage = p; sortAndRender(); }
+function changePageSize() { currentPage = 1; sortAndRender(); }
+
+// ===========================
+// STATUS BADGE
+// ===========================
+function statusBadge(status) {
+  if (!status) return '<span class="status-badge" style="background:#f1f5f9;color:#64748b">-</span>';
+  if (status === 'Approve') return `<span class="status-badge status-approve"><span class="status-dot"></span>Approve</span>`;
+  if (status.toLowerCase().includes('reject')) return `<span class="status-badge status-reject"><span class="status-dot"></span>${status}</span>`;
+  if (status === 'D3 Reject') return `<span class="status-badge status-d3reject"><span class="status-dot"></span>D3 Reject</span>`;
+  if (status.includes('รอ') || status === 'ผ่านการพิจาณาเบื้องต้น') return `<span class="status-badge status-pending"><span class="status-dot"></span>${status}</span>`;
+  return `<span class="status-badge status-waiting"><span class="status-dot"></span>${status}</span>`;
+}
+
+function truncate(str, n) { return str && str.length > n ? str.slice(0, n) + '…' : (str||'-'); }
+
+// ===========================
+// MODAL
+// ===========================
+function openModal(id) {
+  const r = RAW_DATA.find(x => x._ID === id);
+  if (!r) return;
+  document.getElementById('modalTitle').textContent = r.Title || `รายการ #${id}`;
+  document.getElementById('modalSubtitle').textContent = `Customer ID: ${r.Customer_id||'-'} | ทะเบียน: ${r.registration_number||'-'}`;
+  document.getElementById('modalSharePointLink').href = `https://dohomegroup.sharepoint.com/sites/KYC/Lists/KYCData1/DispForm.aspx?ID=${id}`;
+
+  const fields = [
+    ['🆔 ID', r._ID],
+    ['👤 ชื่อบริษัท/ลูกค้า', r.Title],
+    ['🔑 Customer ID', r.Customer_id],
+    ['📋 เลขทะเบียน', r.registration_number],
+    ['📊 สถานะ', r.Status],
+    ['📂 ประเภทคำขอ', r.Type_Request],
+    ['🏭 ประเภทธุรกิจ', r.business_type],
+    ['📍 จังหวัด', r.province],
+    ['💰 วงเงิน', r.limit ? '฿' + r.limit : '-'],
+    ['📅 วันที่สร้าง', r['สร้างเมื่อ']],
+    ['👤 ผู้ติดต่อ', r.contact_name],
+    ['💵 รายได้ต่อปี', r.Estimated_annual_income],
+  ];
+
+  document.getElementById('modalContent').innerHTML = fields.map(([label, val]) => `
+    <div class="detail-item">
+      <div class="detail-label">${label}</div>
+      <div class="detail-value ${label.includes('สถานะ') ? 'highlight' : ''}">${val||'-'}</div>
+    </div>`).join('');
+
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modalOverlay')) {
+    document.getElementById('modalOverlay').classList.remove('open');
+  }
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+
+// ===========================
+// EXPORT CSV
+// ===========================
+function exportVisible() {
+  const ps = parseInt(document.getElementById('pageSizeSelect').value);
+  const start = (currentPage - 1) * ps;
+  const slice = filteredData.slice(start, start + ps);
+  const cols = ['_ID','Title','Customer_id','registration_number','Status','Type_Request','province','สร้างเมื่อ','limit'];
+  const header = cols.join(',');
+  const rows = slice.map(r => cols.map(c => `"${(r[c]||'').toString().replace(/"/g,'""')}"`).join(','));
+  const csv = '\uFEFF' + header + '\n' + rows.join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = `KYC_Export_${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('📥 Export CSV สำเร็จ!');
+}
+
+// ===========================
+// TOAST
+// ===========================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.style.display = 'block';
+  setTimeout(() => { t.style.display = 'none'; }, 3000);
+}
+
+// ===========================
+// CHARTS
+// ===========================
+function renderCharts() {
+  const palette = ['#FF6B00','#ef4444','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ec4899','#14b8a6','#f97316','#6366f1','#84cc16','#06b6d4'];
+
+  // 1. Monthly Line Chart
+  const mLabels = Object.keys(MONTHLY_DATA);
+  const mValues = Object.values(MONTHLY_DATA);
+  new Chart(document.getElementById('monthlyChart'), {
+    type: 'line',
+    data: {
+      labels: mLabels,
+      datasets: [{
+        label: 'คำขอ KYC',
+        data: mValues,
+        borderColor: '#FF6B00',
+        backgroundColor: 'rgba(255,107,0,0.08)',
+        borderWidth: 2.5,
+        pointBackgroundColor: '#FF6B00',
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        tension: 0.4,
+        fill: true,
+      }]
+    },
+    options: {
+      responsive: true,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y.toLocaleString()} รายการ` } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { maxTicksLimit: 12, font: { size: 11 } } },
+        y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  // 2. Status Doughnut
+  const sLabels = Object.keys(STATUS_DATA);
+  const sValues = Object.values(STATUS_DATA);
   new Chart(document.getElementById('statusChart'), {
     type: 'doughnut',
     data: {
-      labels: ['Done', 'Reject', 'รอ IT Operation', 'รออนุมัติ ผจก.ฝ่ายบุคคล', 'รอเปิดสิทธิ์ AccessControl DD', 'รอเปิดสิทธิ์ ICT Support'],
-      datasets: [{
-        data: [4540, 240, 167, 72, 4, 3],
-        backgroundColor: ['#2e7d32','#c62828','#e65100','#f9a825','#0277bd','#6a1b9a'],
-        borderWidth: 2,
-        borderColor: '#fff'
-      }]
+      labels: sLabels,
+      datasets: [{ data: sValues, backgroundColor: palette, borderWidth: 2, borderColor: '#fff', hoverOffset: 8 }]
     },
     options: {
-      responsive: true, maintainAspectRatio: false,
+      responsive: true,
+      cutout: '60%',
       plugins: {
-        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 8 } }
+        legend: { position: 'bottom', labels: { font: { size: 10 }, padding: 8, boxWidth: 12 } },
+        tooltip: { callbacks: { label: ctx => ` ${ctx.label}: ${ctx.parsed.toLocaleString()} (${((ctx.parsed/12238)*100).toFixed(1)}%)` } }
       }
     }
   });
 
-  // Employee Status Pie
-  new Chart(document.getElementById('empStatusChart'), {
-    type: 'pie',
-    data: {
-      labels: ['Active', 'InActive', 'Inactive', 'ComingSoon', 'N/A'],
-      datasets: [{
-        data: [5000, 9, 4, 1, 13],
-        backgroundColor: ['#1565c0','#e53935','#ef9a9a','#ffa726','#bdbdbd'],
-        borderWidth: 2,
-        borderColor: '#fff'
-      }]
-    },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      plugins: {
-        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 8 } }
-      }
-    }
-  });
-
-  // Business Unit Bar
-  new Chart(document.getElementById('buChart'), {
+  // 3. Type Bar
+  new Chart(document.getElementById('typeChart'), {
     type: 'bar',
     data: {
-      labels: [
-        'ธุรกิจค้าปลีก (XL)', 'สายงานปฏิบัติการ', 'สายงานซัพพลายเชน',
-        'สายงานการตลาด', 'ธุรกิจค้าปลีก (Togo)', 'สายงาน IT',
-        'สายงานบัญชีและการเงิน', 'สายงานจัดซื้อ', 'E-commerce', 'ผู้บริหาร'
-      ],
-      datasets: [{
-        label: 'จำนวนผู้ใช้',
-        data: [2633, 973, 296, 131, 130, 119, 112, 98, 83, 80],
-        backgroundColor: [
-          '#1a237e','#283593','#303f9f','#3949ab','#3f51b5',
-          '#5c6bc0','#7986cb','#9fa8da','#c5cae9','#e8eaf6'
-        ],
-        borderRadius: 6
-      }]
+      labels: ['เปิดวงเงินใหม่','เพิ่มวงเงิน'],
+      datasets: [{ data: [9795,2443], backgroundColor: ['#FF6B00','#3b82f6'], borderRadius: 8, borderSkipped: false }]
+    },
+    options: {
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.y.toLocaleString()} รายการ` } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+        y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } }
+      }
+    }
+  });
+
+  // 4. Income Bar
+  new Chart(document.getElementById('incomeChart'), {
+    type: 'bar',
+    data: {
+      labels: Object.keys(INCOME_DATA),
+      datasets: [{ data: Object.values(INCOME_DATA), backgroundColor: ['#dbeafe','#bfdbfe','#93c5fd','#60a5fa','#3b82f6','#1d4ed8'], borderRadius: 6, borderSkipped: false }]
     },
     options: {
       indexAxis: 'y',
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x.toLocaleString()} รายการ` } } },
       scales: {
-        x: { grid: { color: '#f0f0f0' } },
-        y: { ticks: { font: { size: 11 } } }
+        x: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
       }
     }
   });
 
-  // Location Bar
-  new Chart(document.getElementById('locationChart'), {
+  // 5. Province Bar
+  new Chart(document.getElementById('provinceChart'), {
     type: 'bar',
     data: {
-      labels: [
-        'สนญ.ดินแดง','สำนักงานใหญ่','บางพูน','อยุธยา',
-        'รังสิตคลอง 7','เชียงราย','บางบัวทอง','บางนาตราด',
-        'แหลมฉบัง','บางพลี เทพารักษ์'
-      ],
-      datasets: [{
-        label: 'จำนวนผู้ใช้',
-        data: [795, 396, 302, 275, 247, 207, 194, 177, 167, 160],
-        backgroundColor: '#00695c',
-        borderRadius: 6
-      }]
+      labels: Object.keys(PROVINCE_DATA),
+      datasets: [{ data: Object.values(PROVINCE_DATA), backgroundColor: '#FF6B00', borderRadius: 6, borderSkipped: false, hoverBackgroundColor: '#d45a00' }]
     },
     options: {
       indexAxis: 'y',
-      responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      responsive: true,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ` ${ctx.parsed.x} รายการ` } } },
       scales: {
-        x: { grid: { color: '#f0f0f0' } },
-        y: { ticks: { font: { size: 11 } } }
+        x: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } },
+        y: { grid: { display: false }, ticks: { font: { size: 11 } } }
       }
     }
   });
+}
 </script>
-
 </body>
 </html>
